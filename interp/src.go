@@ -33,6 +33,8 @@ func (interp *Interpreter) importSrc(rPath, importPath string, skipTest bool) (s
 			rPath = "."
 		}
 		dir = filepath.Join(filepath.Dir(interp.name), rPath, importPath)
+	} else if interp.sandboxPath != "" {
+		dir = filepath.Join(interp.sandboxPath, importPath)
 	} else if dir, rPath, err = pkgDir(interp.context.GOPATH, rPath, importPath); err != nil {
 		// Try again, assuming a root dir at the source location.
 		if rPath, err = interp.rootFromSourceLocation(); err != nil {

@@ -140,7 +140,8 @@ type Interpreter struct {
 	// incremented, keep it aligned on 64 bits boundary.
 	nindex int64
 
-	name string // name of the input source file (or main)
+	name        string // name of the input source file (or main)
+	sandboxPath string // path with sandboxed dependencies
 
 	opt                        // user settable options
 	cancelChan bool            // enables cancellable chan operations
@@ -231,6 +232,9 @@ type Options struct {
 	// GoPath sets GOPATH for the interpreter.
 	GoPath string
 
+	// SandboxPath sets sandbox path for the interpreter.
+	SandboxPath string
+
 	// BuildTags sets build constraints for the interpreter.
 	BuildTags []string
 
@@ -243,16 +247,17 @@ type Options struct {
 // New returns a new interpreter.
 func New(options Options) *Interpreter {
 	i := Interpreter{
-		opt:      opt{context: build.Default},
-		frame:    newFrame(nil, 0, 0),
-		fset:     token.NewFileSet(),
-		universe: initUniverse(),
-		scopes:   map[string]*scope{},
-		binPkg:   Exports{"": map[string]reflect.Value{"_error": reflect.ValueOf((*_error)(nil))}},
-		srcPkg:   imports{},
-		pkgNames: map[string]string{},
-		rdir:     map[string]bool{},
-		hooks:    &hooks{},
+		opt:         opt{context: build.Default},
+		frame:       newFrame(nil, 0, 0),
+		fset:        token.NewFileSet(),
+		universe:    initUniverse(),
+		scopes:      map[string]*scope{},
+		binPkg:      Exports{"": map[string]reflect.Value{"_error": reflect.ValueOf((*_error)(nil))}},
+		srcPkg:      imports{},
+		pkgNames:    map[string]string{},
+		rdir:        map[string]bool{},
+		hooks:       &hooks{},
+		sandboxPath: options.SandboxPath,
 	}
 
 	if i.opt.stdin = options.Stdin; i.opt.stdin == nil {
